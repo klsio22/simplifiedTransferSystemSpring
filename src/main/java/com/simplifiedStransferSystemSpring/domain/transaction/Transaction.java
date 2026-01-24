@@ -3,6 +3,8 @@ package com.simplifiedStransferSystemSpring.domain.transaction;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.simplifiedStransferSystemSpring.domain.user.User;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -29,11 +31,11 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "payer_id")
-    private Long payer;
+    private User payer;
 
     @ManyToOne
     @JoinColumn(name = "payee_id")
-    private Long payee;
+    private User payee;
 
     private LocalDateTime timestamp;
 

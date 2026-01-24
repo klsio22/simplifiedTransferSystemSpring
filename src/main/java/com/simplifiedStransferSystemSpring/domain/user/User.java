@@ -1,7 +1,5 @@
 package com.simplifiedStransferSystemSpring.domain.user;
 
-import org.hibernate.usertype.UserType;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -15,8 +13,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity(name="users")
-@Table(name="users")
+@Entity(name = "users")
+@Table(name = "users")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -25,23 +23,21 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String firstName;
-    
+
     private String lastName;
 
     @Column(unique = true)
     private String document;
 
-    
     @Column(unique = true)
     private String email;
 
-    private String password;  
-    
-    
+    private String password;
+
     private String balance;
 
     @Enumerated(EnumType.STRING)
-    private UserType<String> userType;
+    private UserType userType;
 }
