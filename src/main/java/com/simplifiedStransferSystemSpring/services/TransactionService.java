@@ -54,7 +54,7 @@ public class TransactionService {
     public boolean autorizeTransaction(User payer, BigDecimal value) {
 
         ResponseEntity<Map> authorizationResponse = restTemplate
-                .getForEntity("https://auth-simplified-system.herokuapp.com/authorize", Map.class);
+                .getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
 
         if (authorizationResponse.getStatusCode() == HttpStatus.OK) {
             String message = (String) authorizationResponse.getBody().get("message");
