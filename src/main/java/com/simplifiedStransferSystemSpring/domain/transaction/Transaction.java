@@ -14,12 +14,14 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity(name = "transactions")
 @Table(name = "transactions")
 @Getter
 @Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class Transaction {

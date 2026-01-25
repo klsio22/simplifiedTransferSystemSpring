@@ -18,7 +18,7 @@ public class UserService {
             throw new IllegalArgumentException("Merchants are not allowed to initiate transactions.");
         }
 
-        if (new BigDecimal(payer.getBalance()).compareTo(amount) < 0) {
+        if (payer.getBalance().compareTo(amount) < 0) {
             throw new IllegalArgumentException("Insufficient funds for the transaction.");
         }
     }
