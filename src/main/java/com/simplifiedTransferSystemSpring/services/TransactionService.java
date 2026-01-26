@@ -122,8 +122,8 @@ public class TransactionService {
             Object authObj = dataMap.get("authorization");
             if (authObj instanceof Boolean authBoolean)
                 return authBoolean;
-            if (authObj instanceof Boolean authBoolean)
-                return authBoolean;
+            if (authObj instanceof String authString)
+                return Boolean.valueOf(authString);
             return false;
         }
 
