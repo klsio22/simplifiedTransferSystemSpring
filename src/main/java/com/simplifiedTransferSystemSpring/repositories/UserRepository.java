@@ -1,11 +1,11 @@
-package com.simplifiedStransferSystemSpring.repositories;
+package com.simplifiedTransferSystemSpring.repositories;
 
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.simplifiedStransferSystemSpring.domain.user.User;
+import com.simplifiedTransferSystemSpring.domain.user.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {

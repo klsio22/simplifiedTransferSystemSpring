@@ -1,4 +1,4 @@
-package com.simplifiedStransferSystemSpring.services;
+package com.simplifiedTransferSystemSpring.services;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -6,10 +6,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.simplifiedStransferSystemSpring.domain.user.User;
-import com.simplifiedStransferSystemSpring.domain.user.UserType;
-import com.simplifiedStransferSystemSpring.dtos.UserDTO;
-import com.simplifiedStransferSystemSpring.repositories.UserRepository;
+import com.simplifiedTransferSystemSpring.domain.user.User;
+import com.simplifiedTransferSystemSpring.domain.user.UserType;
+import com.simplifiedTransferSystemSpring.dtos.UserDTO;
+import com.simplifiedTransferSystemSpring.repositories.UserRepository;
 
 @Service
 public class UserService {

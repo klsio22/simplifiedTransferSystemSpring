@@ -1,10 +1,10 @@
-package com.simplifiedStransferSystemSpring;
+package com.simplifiedTransferSystemSpring;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SimplifiedStransferSystemSpringApplicationTests {
+class SimplifiedTransferSystemSpringApplicationTests {
 
 	@Test
 	void contextLoads() {

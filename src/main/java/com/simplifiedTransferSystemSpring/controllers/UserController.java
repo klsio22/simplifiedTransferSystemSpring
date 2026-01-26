@@ -1,4 +1,4 @@
-package com.simplifiedStransferSystemSpring.controllers;
+package com.simplifiedTransferSystemSpring.controllers;
 
 import java.util.List;
 
@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.simplifiedStransferSystemSpring.domain.user.User;
-import com.simplifiedStransferSystemSpring.dtos.UserDTO;
-import com.simplifiedStransferSystemSpring.services.UserService;
+import com.simplifiedTransferSystemSpring.domain.user.User;
+import com.simplifiedTransferSystemSpring.dtos.UserDTO;
+import com.simplifiedTransferSystemSpring.services.UserService;
 
 @RestController
 @RequestMapping("/users")

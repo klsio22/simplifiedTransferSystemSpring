@@ -1,4 +1,4 @@
-package com.simplifiedStransferSystemSpring.services;
+package com.simplifiedTransferSystemSpring.services;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -11,10 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.simplifiedStransferSystemSpring.domain.transaction.Transaction;
-import com.simplifiedStransferSystemSpring.domain.user.User;
-import com.simplifiedStransferSystemSpring.dtos.TransactionDTO;
-import com.simplifiedStransferSystemSpring.repositories.TransactionRepository;
+import com.simplifiedTransferSystemSpring.domain.transaction.Transaction;
+import com.simplifiedTransferSystemSpring.domain.user.User;
+import com.simplifiedTransferSystemSpring.dtos.TransactionDTO;
+import com.simplifiedTransferSystemSpring.repositories.TransactionRepository;
 
 @Service
 public class TransactionService {

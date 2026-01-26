@@ -1,4 +1,4 @@
-package com.simplifiedStransferSystemSpring.controllers;
+package com.simplifiedTransferSystemSpring.controllers;
 
 import java.util.List;
 
@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.simplifiedStransferSystemSpring.domain.transaction.Transaction;
-import com.simplifiedStransferSystemSpring.dtos.TransactionDTO;
-import com.simplifiedStransferSystemSpring.services.TransactionService;
+import com.simplifiedTransferSystemSpring.domain.transaction.Transaction;
+import com.simplifiedTransferSystemSpring.dtos.TransactionDTO;
+import com.simplifiedTransferSystemSpring.services.TransactionService;
 
 @RestController
 @RequestMapping("/transactions")

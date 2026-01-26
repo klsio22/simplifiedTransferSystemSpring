@@ -1,4 +1,4 @@
-package com.simplifiedStransferSystemSpring.infra;
+package com.simplifiedTransferSystemSpring.infra;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

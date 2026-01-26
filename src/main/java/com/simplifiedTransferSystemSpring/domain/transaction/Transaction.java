@@ -1,9 +1,9 @@
-package com.simplifiedStransferSystemSpring.domain.transaction;
+package com.simplifiedTransferSystemSpring.domain.transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.simplifiedStransferSystemSpring.domain.user.User;
+import com.simplifiedTransferSystemSpring.domain.user.User;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
