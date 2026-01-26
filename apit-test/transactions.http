@@ -1,0 +1,9 @@
+### Create Transaction
+POST http://localhost:8080/transactions
+Content-Type: application/json
+
+{
+  "payerId": 1,
+  "payeeId": 2,
+  "value": 100.00
+}

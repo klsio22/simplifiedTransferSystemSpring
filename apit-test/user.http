@@ -12,6 +12,19 @@ Content-Type: application/json
   "userType": "COMMON"
 }
 
+### POST /users – criar um novo usuário
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "firstName": "Bruno",
+  "lastName": "Souza",
+  "document": "987.654.321-00",
+  "balance": 2000.00,
+  "password": "senha456",
+  "email": "bruno.souza@example.com",
+  "userType": "COMMON"
+}
 
 ### GET /users  –  Listar todos os usuários
 GET http://localhost:8080/users

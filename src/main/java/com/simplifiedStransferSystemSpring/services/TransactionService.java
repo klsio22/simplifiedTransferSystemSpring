@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.simplifiedStransferSystemSpring.domain.transaction.Transaction;
@@ -15,6 +15,7 @@ import com.simplifiedStransferSystemSpring.domain.user.User;
 import com.simplifiedStransferSystemSpring.dtos.TransactionDTO;
 import com.simplifiedStransferSystemSpring.repositories.TransactionRepository;
 
+@Service
 public class TransactionService {
 
     @Autowired
@@ -54,6 +55,7 @@ public class TransactionService {
         userService.saveUser(payer);
         userService.saveUser(payee);
 
+        this.notificationService.sendNotification(payer, "Transaction sent successfully.");
         this.notificationService.sendNotification(payee, "Transaction received successfully.");
 
         return newTransaction;
