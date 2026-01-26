@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import com.simplifiedStransferSystemSpring.domain.user.User;
-import com.simplifiedStransferSystemSpring.dtos.NotificationRequest;
+import com.simplifiedStransferSystemSpring.dtos.NotificationDTO;
 
 public class NotificationsService {
 
@@ -16,7 +16,7 @@ public class NotificationsService {
     public void sendNotification(User user, String message) throws RuntimeException {
         String email = user.getEmail();
 
-        NotificationRequest notificationRequest = new NotificationRequest(email, message);
+        NotificationDTO notificationRequest = new NotificationDTO(email, message);
 
         ResponseEntity<String> notificationResponse = restTemplate.postForEntity(
                 "https://util.devi.tools/api/v1/notify", notificationRequest, String.class);
