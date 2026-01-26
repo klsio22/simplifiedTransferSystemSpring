@@ -2,6 +2,7 @@ package com.simplifiedStransferSystemSpring.services;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,24 +56,70 @@ public class TransactionService {
         userService.saveUser(payer);
         userService.saveUser(payee);
 
-        this.notificationService.sendNotification(payer, "Transaction sent successfully.");
-        this.notificationService.sendNotification(payee, "Transaction received successfully.");
+        boolean payerNotified = this.notificationService.sendNotification(payer, "Transaction sent successfully.");
+        boolean payeeNotified = this.notificationService.sendNotification(payee, "Transaction received successfully.");
+        if (!payerNotified || !payeeNotified) {
+            System.out.println("One or more notification deliveries failed.");
+        }
+
+        // persist notification attempt results for observability
+        newTransaction.setPayerNotified(payerNotified);
+        newTransaction.setPayeeNotified(payeeNotified);
+        repository.save(newTransaction);
 
         return newTransaction;
     }
 
     public boolean autorizeTransaction(User payer, BigDecimal value) {
+        int attempts = 0;
+        int maxAttempts = 3;
+        while (attempts < maxAttempts) {
+            attempts++;
+            try {
+                ResponseEntity<Map> authorizationResponse = restTemplate
+                        .getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
 
-    
-        ResponseEntity<Map> authorizationResponse = restTemplate
-                .getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
+                if (authorizationResponse.getStatusCode() == HttpStatus.OK && authorizationResponse.getBody() != null) {
+                    Map<?, ?> body = authorizationResponse.getBody();
+                    Object statusObj = body.get("status");
+                    Object dataObj = body.get("data");
 
-        if (authorizationResponse.getStatusCode() == HttpStatus.OK) {
-            String message = (String) authorizationResponse.getBody().get("message");
-            return "Autorizado".equalsIgnoreCase(message);
-        } else
-            return false;
+                    // prefer data.authorization if present
+                    if (dataObj instanceof Map) {
+                        Object authObj = ((Map<?, ?>) dataObj).get("authorization");
+                        if (authObj instanceof Boolean) {
+                            return (Boolean) authObj;
+                        } else if (authObj instanceof String) {
+                            return Boolean.parseBoolean((String) authObj);
+                        }
+                    }
 
+                    if (statusObj instanceof String) {
+                        String status = (String) statusObj;
+                        if ("success".equalsIgnoreCase(status)) return true;
+                        if ("fail".equalsIgnoreCase(status)) return false;
+                    }
+
+                    return false;
+                } else {
+                    System.out.println("Authorization endpoint returned non-OK: " + authorizationResponse.getStatusCode());
+                }
+            } catch (Exception e) {
+                System.out.println("Authorization request failed (attempt " + attempts + "): " + e.getMessage());
+            }
+
+            try {
+                Thread.sleep(200L * attempts);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+        return false;
+    }
+
+    public List<Transaction> getAllTransactions() {
+        return this.repository.findAll();
     }
 
 }

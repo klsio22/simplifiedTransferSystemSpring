@@ -1,5 +1,7 @@
 package com.simplifiedStransferSystemSpring.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,22 +14,55 @@ import com.simplifiedStransferSystemSpring.dtos.NotificationDTO;
 @Service
 public class NotificationsService {
 
+    private static final Logger logger = LoggerFactory.getLogger(NotificationsService.class);
+
     @Autowired
     private RestTemplate restTemplate;
 
-    public void sendNotification(User user, String message) throws RuntimeException {
+    /**
+     * Send notification with simple retry/backoff. Treats 200 and 204 as success.
+     * Returns true only when notification endpoint returns success, false otherwise.
+     */
+    public boolean sendNotification(User user, String message) {
         String email = user.getEmail();
 
         NotificationDTO notificationRequest = new NotificationDTO(email, message);
 
-        ResponseEntity<String> notificationResponse = restTemplate.postForEntity(
-                "https://util.devi.tools/api/v1/notify", notificationRequest, String.class);
+        int attempts = 0;
+        int maxAttempts = 3;
+        while (attempts < maxAttempts) {
+            attempts++;
+            try {
+                ResponseEntity<String> notificationResponse = restTemplate.postForEntity(
+                        "https://util.devi.tools/api/v1/notify", notificationRequest, String.class);
 
-        if (!(notificationResponse.getStatusCode() == HttpStatus.OK)) {
-            System.out.println("Service failed to send notification");
-            throw new RuntimeException("Failed to send notification");
+                if (notificationResponse != null) {
+                    var status = notificationResponse.getStatusCode();
+                    if (status.is2xxSuccessful()) {
+                        logger.info("Notification sent successfully to {} (attempt {})", email, attempts);
+                        return true;
+                    } else {
+                        logger.warn("Notification attempt {} returned non-success status {} for {}", attempts, status, email);
+                    }
+                } else {
+                    logger.warn("Notification attempt {} returned null response for {}", attempts, email);
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to send notification to {} (attempt {}): {}", email, attempts, e.getMessage());
+            }
+
+            // exponential-ish backoff
+            try {
+                Thread.sleep(200L * attempts);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                logger.warn("Notification retry interrupted");
+                break;
+            }
         }
 
+        logger.error("All notification attempts failed for {}", email);
+        return false;
     }
 
-}
+} 
