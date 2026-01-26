@@ -5,10 +5,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.simplifiedTransferSystemSpring.domain.transaction.Transaction;
@@ -31,35 +34,52 @@ public class TransactionService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public Transaction createTransaction(TransactionDTO transaction) throws Exception {
+    private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
-        User payer = this.userService.findUserById(transaction.payerId());
-        User payee = this.userService.findUserById(transaction.payeeId());
+    private User loadUser(Long id) throws Exception {
+        return this.userService.findUserById(id);
+    }
 
-        userService.ValidateUserTransaction(payer, transaction.value());
+    private void validateTransaction(User payer, BigDecimal amount) throws Exception {
+        this.userService.ValidateUserTransaction(payer, amount);
+    }
 
-        boolean isAuthorized = this.autorizeTransaction(payer, transaction.value());
+    private Transaction buildTransaction(TransactionDTO dto, User payer, User payee) {
+        Transaction t = new Transaction();
+        t.setAmount(dto.value());
+        t.setPayer(payer);
+        t.setPayee(payee);
+        t.setTimestamp(LocalDateTime.now());
+        return t;
+    }
 
-        if (!isAuthorized) throw new RuntimeException("Transaction not authorized");
-
-        Transaction newTransaction = new Transaction();
-        newTransaction.setAmount(transaction.value());
-        newTransaction.setPayer(payer);
-        newTransaction.setPayee(payee);
-        newTransaction.setTimestamp(LocalDateTime.now());
-
-        repository.save(newTransaction);
-        payer.setBalance(payer.getBalance().subtract(transaction.value()));
-        payee.setBalance(payee.getBalance().add(transaction.value()));
-
-        repository.save(newTransaction);
+    private void updateBalancesAndSave(User payer, User payee, BigDecimal amount) {
+        payer.setBalance(payer.getBalance().subtract(amount));
+        payee.setBalance(payee.getBalance().add(amount));
         userService.saveUser(payer);
         userService.saveUser(payee);
+    }
 
-        boolean payerNotified = this.notificationService.sendNotification(payer, "Transaction sent successfully.");
-        boolean payeeNotified = this.notificationService.sendNotification(payee, "Transaction received successfully.");
+    public Transaction createTransaction(TransactionDTO transaction) throws Exception {
+        User payer = loadUser(transaction.payerId());
+        User payee = loadUser(transaction.payeeId());
+
+        validateTransaction(payer, transaction.value());
+
+        boolean isAuthorized = authorizeTransaction(payer, transaction.value());
+        if (!isAuthorized)
+            throw new RuntimeException("Transaction not authorized");
+
+        Transaction newTransaction = buildTransaction(transaction, payer, payee);
+
+        repository.save(newTransaction);
+
+        updateBalancesAndSave(payer, payee, transaction.value());
+
+        boolean payerNotified = notificationService.sendNotification(payer, "Transaction sent successfully.");
+        boolean payeeNotified = notificationService.sendNotification(payee, "Transaction received successfully.");
         if (!payerNotified || !payeeNotified) {
-            System.out.println("One or more notification deliveries failed.");
+            logger.warn("One or more notification deliveries failed.");
         }
 
         // persist notification attempt results for observability
@@ -70,7 +90,7 @@ public class TransactionService {
         return newTransaction;
     }
 
-    public boolean autorizeTransaction(User payer, BigDecimal value) {
+    public boolean authorizeTransaction(User payer, BigDecimal value) {
         int attempts = 0;
         int maxAttempts = 3;
         while (attempts < maxAttempts) {
@@ -80,42 +100,43 @@ public class TransactionService {
                         .getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
 
                 if (authorizationResponse.getStatusCode() == HttpStatus.OK && authorizationResponse.getBody() != null) {
-                    Map<?, ?> body = authorizationResponse.getBody();
-                    Object statusObj = body.get("status");
-                    Object dataObj = body.get("data");
-
-                    // prefer data.authorization if present
-                    if (dataObj instanceof Map) {
-                        Object authObj = ((Map<?, ?>) dataObj).get("authorization");
-                        if (authObj instanceof Boolean) {
-                            return (Boolean) authObj;
-                        } else if (authObj instanceof String) {
-                            return Boolean.parseBoolean((String) authObj);
-                        }
-                    }
-
-                    if (statusObj instanceof String) {
-                        String status = (String) statusObj;
-                        if ("success".equalsIgnoreCase(status)) return true;
-                        if ("fail".equalsIgnoreCase(status)) return false;
-                    }
-
+                    Boolean parsed = parseAuthorizationResponse(authorizationResponse.getBody());
+                    if (parsed != null)
+                        return parsed;
                     return false;
                 } else {
-                    System.out.println("Authorization endpoint returned non-OK: " + authorizationResponse.getStatusCode());
+                    throw new RuntimeException(
+                            "Authorization endpoint returned non-OK: " + authorizationResponse.getStatusCode());
                 }
-            } catch (Exception e) {
-                System.out.println("Authorization request failed (attempt " + attempts + "): " + e.getMessage());
-            }
-
-            try {
-                Thread.sleep(200L * attempts);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                break;
+            } catch (RestClientException e) {
+                logger.warn("Authorization request failed (attempt {}): {}", attempts, e.getMessage());
             }
         }
         return false;
+    }
+
+    private Boolean parseAuthorizationResponse(Map<?, ?> body) {
+        Object dataObj = body.get("data");
+        Object statusObj = body.get("status");
+
+        if (dataObj instanceof Map<?, ?> dataMap) {
+            Object authObj = dataMap.get("authorization");
+            if (authObj instanceof Boolean authBoolean)
+                return authBoolean;
+            if (authObj instanceof Boolean authBoolean)
+                return authBoolean;
+            return false;
+        }
+
+        if (statusObj instanceof String status) {
+            return switch (status.toLowerCase()) {
+                case "success" -> true;
+                case "fail" -> false;
+                default -> false;
+            };
+        }
+
+        return null;
     }
 
     public List<Transaction> getAllTransactions() {
