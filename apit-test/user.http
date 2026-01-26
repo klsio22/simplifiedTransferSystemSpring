@@ -1,4 +1,4 @@
-### POST /users – criar um novo usuário
+### POST /users – create a new user
 POST http://localhost:8080/users
 Content-Type: application/json
 
@@ -12,7 +12,7 @@ Content-Type: application/json
   "userType": "COMMON"
 }
 
-### POST /users – criar um novo usuário
+### POST /users – create a new user
 POST http://localhost:8080/users
 Content-Type: application/json
 
@@ -26,5 +26,18 @@ Content-Type: application/json
   "userType": "COMMON"
 }
 
-### GET /users  –  Listar todos os usuários
+### POST /users – create a new merchant user
+POST http://localhost:8080/users
+Content-Type: application/json
+{
+  "firstName": "Comerciante",
+  "lastName": "Loja",
+  "document": "111.222.333-44",
+  "balance": 5000.00,
+  "password": "senha789",
+  "email": "comerciante.loja@example.com",
+  "userType": "MERCHANT"
+}
+
+### GET /users – list all users
 GET http://localhost:8080/users
