@@ -8,9 +8,6 @@ Content-Type: application/json
   "value": 100.00
 }
 
-### GET /transactions – list all transactions (check notification flags)
-GET http://localhost:8080/transactions
-
 
 ### POST /transactions – create a new transaction error insufficient funds
 POST http://localhost:8080/transactions
@@ -21,6 +18,7 @@ Content-Type: application/json
   "payeeId": 2,
   "value": 2000.00
 }
+
 
 ### Post /transactions – create a new transaction user common pays merchant
 POST http://localhost:8080/transactions
@@ -33,6 +31,10 @@ Content-Type: application/json
 }
 
 
+### GET /transactions – list all transactions (check notification flags)
+GET http://localhost:8080/transactions
+
+
 ### POST /transactions – create a new transaction error payer is merchant
 POST http://localhost:8080/transactions
 Content-Type: application/json
@@ -42,6 +44,7 @@ Content-Type: application/json
   "payeeId": 2,
   "value": 100.00
 }
+
 
 ### Post /transactions – create a new transaction error user not found
 POST http://localhost:8080/transactions

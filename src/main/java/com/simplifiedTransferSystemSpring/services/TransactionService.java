@@ -82,7 +82,6 @@ public class TransactionService {
             logger.warn("One or more notification deliveries failed.");
         }
 
-        // persist notification attempt results for observability
         newTransaction.setPayerNotified(payerNotified);
         newTransaction.setPayeeNotified(payeeNotified);
         repository.save(newTransaction);
