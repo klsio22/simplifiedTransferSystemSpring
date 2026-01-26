@@ -3,7 +3,6 @@ package com.simplifiedStransferSystemSpring.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,10 +18,6 @@ public class NotificationsService {
     @Autowired
     private RestTemplate restTemplate;
 
-    /**
-     * Send notification with simple retry/backoff. Treats 200 and 204 as success.
-     * Returns true only when notification endpoint returns success, false otherwise.
-     */
     public boolean sendNotification(User user, String message) {
         String email = user.getEmail();
 
@@ -51,7 +46,6 @@ public class NotificationsService {
                 logger.warn("Failed to send notification to {} (attempt {}): {}", email, attempts, e.getMessage());
             }
 
-            // exponential-ish backoff
             try {
                 Thread.sleep(200L * attempts);
             } catch (InterruptedException ie) {
