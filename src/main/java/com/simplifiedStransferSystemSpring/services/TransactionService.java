@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,12 @@ public class TransactionService {
     private TransactionRepository repository;
 
     @Autowired
+    private NotificationsService notificationService;
+
+    @Autowired
     private RestTemplate restTemplate;
 
-    public void createTransaction(TransactionDTO transaction) throws Exception {
+    public Transaction createTransaction(TransactionDTO transaction) throws Exception {
 
         User payer = this.userService.findUserById(transaction.payerId());
         User payee = this.userService.findUserById(transaction.payeeId());
@@ -49,6 +53,10 @@ public class TransactionService {
         repository.save(newTransaction);
         userService.saveUser(payer);
         userService.saveUser(payee);
+
+        this.notificationService.sendNotification(payee, "Transaction received successfully.");
+
+        return newTransaction;
     }
 
     public boolean autorizeTransaction(User payer, BigDecimal value) {
