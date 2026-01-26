@@ -4,12 +4,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.simplifiedStransferSystemSpring.dtos.ExceptionDTO;
 
 import jakarta.persistence.EntityNotFoundException;
 
-@RestController
+@RestControllerAdvice
 public class ControllerExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
@@ -25,7 +26,7 @@ public class ControllerExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ExceptionDTO> threatGeneralException(Exception exception) {
-        ExceptionDTO exceptionDTO = new ExceptionDTO("Internal server error", "500");
+        ExceptionDTO exceptionDTO = new ExceptionDTO(exception.getMessage(), "500");
         return ResponseEntity.internalServerError().body(exceptionDTO);
     }
 

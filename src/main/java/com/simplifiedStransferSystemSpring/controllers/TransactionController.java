@@ -15,16 +15,15 @@ import com.simplifiedStransferSystemSpring.services.TransactionService;
 @RestController
 @RequestMapping("/transactions")
 public class TransactionController {
-    
+
     @Autowired
     private TransactionService transactionService;
 
     @PostMapping
     public ResponseEntity<Transaction> createTransaction(@RequestBody TransactionDTO transactionDTO) throws Exception {
-        // Implementation for creating a transaction
         Transaction newTransaction = this.transactionService.createTransaction(transactionDTO);
 
-        return new ResponseEntity<>(newTransaction , HttpStatus.OK);
+        return new ResponseEntity<>(newTransaction, HttpStatus.OK);
 
     }
 
