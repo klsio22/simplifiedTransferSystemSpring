@@ -66,7 +66,7 @@ public class TransactionService {
 
         validateTransaction(payer, transaction.value());
 
-        boolean isAuthorized = authorizeTransaction(payer, transaction.value());
+        boolean isAuthorized = authorizeTransaction();
         if (!isAuthorized)
             throw new RuntimeException("Transaction not authorized");
 
@@ -89,7 +89,7 @@ public class TransactionService {
         return newTransaction;
     }
 
-    public boolean authorizeTransaction(User payer, BigDecimal value) {
+    public boolean authorizeTransaction() {
         int attempts = 0;
         int maxAttempts = 3;
         while (attempts < maxAttempts) {
