@@ -1,4 +1,4 @@
-### Create Transaction
+### POST /transactions – create a new transaction
 POST http://localhost:8080/transactions
 Content-Type: application/json
 

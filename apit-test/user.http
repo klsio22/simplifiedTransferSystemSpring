@@ -29,6 +29,7 @@ Content-Type: application/json
 ### POST /users – create a new merchant user
 POST http://localhost:8080/users
 Content-Type: application/json
+
 {
   "firstName": "Comerciante",
   "lastName": "Loja",
