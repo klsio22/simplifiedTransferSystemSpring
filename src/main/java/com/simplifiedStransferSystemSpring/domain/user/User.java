@@ -11,6 +11,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
@@ -23,11 +24,8 @@ import com.simplifiedStransferSystemSpring.dtos.UserDTO;
 @Setter
 @AllArgsConstructor
 @EqualsAndHashCode
+@NoArgsConstructor
 public class User {
-
-    protected User() {
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
