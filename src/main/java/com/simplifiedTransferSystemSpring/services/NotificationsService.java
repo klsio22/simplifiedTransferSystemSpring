@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.simplifiedTransferSystemSpring.domain.user.User;
@@ -37,21 +38,15 @@ public class NotificationsService {
                         logger.info("Notification sent successfully to {} (attempt {})", email, attempts);
                         return true;
                     } else {
-                        logger.warn("Notification attempt {} returned non-success status {} for {}", attempts, status, email);
+                        logger.warn("Notification attempt {} returned non-success status {} for {}", attempts, status,
+                                email);
                     }
                 } else {
                     logger.warn("Notification attempt {} returned null response for {}", attempts, email);
                 }
-            } catch (Exception e) {
-                logger.warn("Failed to send notification to {} (attempt {}): {}", email, attempts, e.getMessage());
-            }
-
-            try {
-                Thread.sleep(200L * attempts);
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
-                logger.warn("Notification retry interrupted");
-                break;
+            } catch (RestClientException exception) {
+                logger.warn("Failed to send notification to {} (attempt {}): {}", email, attempts,
+                        exception.getMessage());
             }
         }
 
@@ -59,4 +54,4 @@ public class NotificationsService {
         return false;
     }
 
-} 
+}
