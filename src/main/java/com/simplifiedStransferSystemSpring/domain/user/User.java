@@ -24,6 +24,10 @@ import com.simplifiedStransferSystemSpring.dtos.UserDTO;
 @AllArgsConstructor
 @EqualsAndHashCode
 public class User {
+
+    protected User() {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,7 +50,7 @@ public class User {
     private UserType userType;
 
     public User(UserDTO data) {
-        this.firstName = data.fistName();
+        this.firstName = data.firstName();
         this.lastName = data.lastName();
         this.document = data.document();
         this.balance = data.balance();
