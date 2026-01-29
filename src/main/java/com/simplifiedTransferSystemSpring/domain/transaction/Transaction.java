@@ -41,7 +41,6 @@ public class Transaction {
 
     private LocalDateTime timestamp;
 
-    // Notification status flags persisted for observability
     private boolean payerNotified = false;
     private boolean payeeNotified = false;
 

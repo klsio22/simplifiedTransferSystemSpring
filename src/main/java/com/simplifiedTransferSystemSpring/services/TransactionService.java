@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -73,8 +72,6 @@ public class TransactionService {
 
         Transaction newTransaction = executeTransaction(transaction, payer, payee);
 
-        scheduleNotifications(newTransaction, payer, payee);
-
         return newTransaction;
     }
 
@@ -88,41 +85,30 @@ public class TransactionService {
     private Transaction executeTransaction(TransactionDTO dto, User payer, User payee) {
         Transaction newTransaction = buildTransaction(dto, payer, payee);
         updateBalancesAndSave(payer, payee, dto.value());
-        return repository.save(newTransaction);
-    }
 
-    private void scheduleNotifications(Transaction transaction, User payer, User payee) {
-        TransactionSynchronizationManager.registerSynchronization(
-                new org.springframework.transaction.support.TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        sendNotificationsAndUpdateFlags(transaction, payer, payee);
-                    }
-                });
-    }
+        // persist transaction first
+        Transaction saved = repository.save(newTransaction);
 
-    private void sendNotificationsAndUpdateFlags(Transaction transaction, User payer, User payee) {
-        boolean payerNotified = notificationService.sendNotification(payer,
-                "Transaction sent successfully.");
-        boolean payeeNotified = notificationService.sendNotification(payee,
-                "Transaction received successfully.");
+        // send notifications synchronously and persist flags immediately
+        boolean payerNotified = notificationService.sendNotification(payer, "Transaction sent successfully.");
+        boolean payeeNotified = notificationService.sendNotification(payee, "Transaction received successfully.");
 
         if (!payerNotified || !payeeNotified) {
-            logger.warn("One or more notification deliveries failed.");
+            logger.warn("One or more notification deliveries failed (payer={}, payee={})", payerNotified,
+                    payeeNotified);
         }
 
-        updateNotificationFlags(transaction, payerNotified, payeeNotified);
-    }
-
-    private void updateNotificationFlags(Transaction transaction, boolean payerNotified, boolean payeeNotified) {
-        transaction.setPayerNotified(payerNotified);
-        transaction.setPayeeNotified(payeeNotified);
         try {
-            repository.save(transaction);
+            saved.setPayerNotified(payerNotified);
+            saved.setPayeeNotified(payeeNotified);
+            repository.saveAndFlush(saved);
+            logger.info("Persisted notification flags for transaction {}: payer={}, payee={}", saved.getId(),
+                    payerNotified, payeeNotified);
         } catch (Exception e) {
-            logger.warn("Failed to persist notification flags for transaction {}: {}",
-                    transaction.getId(), e.getMessage());
+            logger.warn("Failed to persist notification flags for transaction {}: {}", saved.getId(), e.getMessage());
         }
+
+        return saved;
     }
 
     public boolean authorizeTransaction() {
