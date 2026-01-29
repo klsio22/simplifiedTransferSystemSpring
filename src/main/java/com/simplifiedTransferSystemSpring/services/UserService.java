@@ -21,7 +21,7 @@ public class UserService {
     @Autowired
     private UserRepository repository;
 
-    public void ValidateUserTransaction(User payer, BigDecimal amount) {
+    public void validateUserTransaction(User payer, BigDecimal amount) {
         if (payer.getUserType().equals(UserType.MERCHANT)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Merchants are not allowed to initiate transactions.");
         }

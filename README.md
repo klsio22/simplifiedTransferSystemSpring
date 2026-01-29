@@ -238,7 +238,7 @@ sequenceDiagram
     TransactionController->>TransactionService: createTransaction(dto)
     TransactionService->>UserService: findUserById(payerId)
     TransactionService->>UserService: findUserById(payeeId)
-    TransactionService->>UserService: ValidateUserTransaction()
+    TransactionService->>UserService: validateUserTransaction()
     TransactionService->>AuthorizationService: authorize()
     AuthorizationService-->>TransactionService: true/false
     TransactionService->>Repository: save(transaction)

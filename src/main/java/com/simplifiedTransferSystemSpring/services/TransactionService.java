@@ -45,7 +45,7 @@ public class TransactionService {
     }
 
     private void validateTransaction(User payer, BigDecimal amount) {
-        this.userService.ValidateUserTransaction(payer, amount);
+        this.userService.validateUserTransaction(payer, amount);
     }
 
     private Transaction buildTransaction(TransactionDTO dto, User payer, User payee) {
