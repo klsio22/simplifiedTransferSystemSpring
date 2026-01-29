@@ -68,7 +68,7 @@ public class TransactionService {
 
         validateTransaction(payer, transaction.value());
 
-        boolean isAuthorized = authorizeTransaction(payer, transaction.value());
+        boolean isAuthorized = authorizeTransaction();
         if (!isAuthorized)
             throw new RuntimeException("Transaction not authorized");
 
@@ -128,15 +128,16 @@ public class TransactionService {
         return newTransaction;
     }
 
-    public boolean authorizeTransaction(User payer, BigDecimal value) {
+    public boolean authorizeTransaction() {
         int attempts = 0;
         int maxAttempts = 3;
         while (attempts < maxAttempts) {
             attempts++;
             try {
-                ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity(
-                        "https://util.devi.tools/api/v2/authorize?payerId={payerId}&amount={amount}",
-                        Map.class, payer.getId(), value.toPlainString());
+                logger.debug("Authorization attempt {} (no payer/amount passed)", attempts);
+
+                ResponseEntity<Map> authorizationResponse = restTemplate
+                        .getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
 
                 if (authorizationResponse.getStatusCode() == HttpStatus.OK && authorizationResponse.getBody() != null) {
                     Boolean parsed = parseAuthorizationResponse(authorizationResponse.getBody());
