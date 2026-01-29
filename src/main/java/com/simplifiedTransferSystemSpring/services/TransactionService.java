@@ -8,12 +8,11 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -39,11 +38,11 @@ public class TransactionService {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
-    private User loadUser(Long id) throws Exception {
+    private User loadUser(Long id) {
         return this.userService.findUserById(id);
     }
 
-    private void validateTransaction(User payer, BigDecimal amount) throws Exception {
+    private void validateTransaction(User payer, BigDecimal amount) {
         this.userService.ValidateUserTransaction(payer, amount);
     }
 
@@ -63,7 +62,7 @@ public class TransactionService {
         userService.saveUser(payee);
     }
 
-    public Transaction createTransaction(TransactionDTO transaction) throws Exception {
+    public Transaction createTransaction(TransactionDTO transaction) {
         User payer = loadUser(transaction.payerId());
         User payee = loadUser(transaction.payeeId());
 
@@ -92,17 +91,10 @@ public class TransactionService {
         boolean payerNotified = notificationService.sendNotification(payer, "Transaction sent successfully.");
         boolean payeeNotified = notificationService.sendNotification(payee, "Transaction received successfully.");
 
-        if (!payerNotified || !payeeNotified) {
-            logger.warn("One or more notification deliveries failed (payer={}, payee={})", payerNotified,
-                    payeeNotified);
-        }
-
         try {
             saved.setPayerNotified(payerNotified);
             saved.setPayeeNotified(payeeNotified);
             repository.saveAndFlush(saved);
-            logger.info("Persisted notification flags for transaction {}: payer={}, payee={}", saved.getId(),
-                    payerNotified, payeeNotified);
         } catch (Exception e) {
             logger.warn("Failed to persist notification flags for transaction {}: {}", saved.getId(), e.getMessage());
         }
@@ -129,9 +121,6 @@ public class TransactionService {
                     if (parsed != null)
                         return parsed;
                     return false;
-                } else {
-                    logger.warn("Authorization endpoint returned non-OK (attempt {}): {}", attempts,
-                            authorizationResponse.getStatusCode());
                 }
             } catch (RestClientException e) {
                 logger.warn("Authorization request failed (attempt {}): {}", attempts, e.getMessage());
@@ -139,6 +128,7 @@ public class TransactionService {
         }
         return false;
     }
+
     private Boolean parseAuthorizationResponse(Map<String, Object> body) {
         Object dataObj = body.get("data");
         Object statusObj = body.get("status");

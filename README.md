@@ -200,7 +200,7 @@ Foram criadas novas abstrações:
 3. **Autorização Externa**: integração com `https://util.devi.tools/api/v2/authorize`
    - Retry automático (até 3 tentativas)
    - Backoff exponencial entre tentativas
-4. **Notificações**: envio assíncrono via `NotificationsService`
+4. **Notificações**: envio via `NotificationsService`
 5. **Auditoria**: flags `payerNotified` e `payeeNotified` persistidos
 
 ---
