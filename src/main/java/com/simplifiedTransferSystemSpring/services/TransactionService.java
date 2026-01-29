@@ -63,7 +63,6 @@ public class TransactionService {
         userService.saveUser(payee);
     }
 
-    @Transactional
     public Transaction createTransaction(TransactionDTO transaction) throws Exception {
         User payer = loadUser(transaction.payerId());
         User payee = loadUser(transaction.payeeId());
@@ -88,10 +87,8 @@ public class TransactionService {
         Transaction newTransaction = buildTransaction(dto, payer, payee);
         updateBalancesAndSave(payer, payee, dto.value());
 
-        // persist transaction first
         Transaction saved = repository.save(newTransaction);
 
-        // send notifications synchronously and persist flags immediately
         boolean payerNotified = notificationService.sendNotification(payer, "Transaction sent successfully.");
         boolean payeeNotified = notificationService.sendNotification(payee, "Transaction received successfully.");
 
