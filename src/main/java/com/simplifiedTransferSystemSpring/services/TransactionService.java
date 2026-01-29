@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -73,12 +74,10 @@ public class TransactionService {
             throw new RuntimeException("Transaction not authorized");
 
         Transaction newTransaction = buildTransaction(transaction, payer, payee);
-
         updateBalancesAndSave(payer, payee, transaction.value());
-
         repository.save(newTransaction);
 
-        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+        TransactionSynchronizationManager.registerSynchronization(
                 new org.springframework.transaction.support.TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
@@ -97,31 +96,6 @@ public class TransactionService {
                             logger.warn("Failed to persist notification flags for transaction {}: {}",
                                     newTransaction.getId(), e.getMessage());
                         }
-                    }
-
-                    // no-op implementations for other lifecycle methods
-                    @Override
-                    public void beforeCommit(boolean readOnly) {
-                    }
-
-                    @Override
-                    public void beforeCompletion() {
-                    }
-
-                    @Override
-                    public void afterCompletion(int status) {
-                    }
-
-                    @Override
-                    public void flush() {
-                    }
-
-                    @Override
-                    public void suspend() {
-                    }
-
-                    @Override
-                    public void resume() {
                     }
                 });
 
