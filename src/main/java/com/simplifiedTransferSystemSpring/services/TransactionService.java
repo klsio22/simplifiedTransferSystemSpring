@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.simplifiedTransferSystemSpring.domain.transaction.Transaction;
 import com.simplifiedTransferSystemSpring.domain.user.User;
@@ -75,10 +76,10 @@ public class TransactionService {
         return newTransaction;
     }
 
-    private void validateAuthorization() throws RuntimeException {
+    private void validateAuthorization() {
         boolean isAuthorized = authorizeTransaction();
         if (!isAuthorized) {
-            throw new RuntimeException("Transaction not authorized");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Transaction not authorized");
         }
     }
 
