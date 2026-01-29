@@ -1,8 +1,8 @@
-package com.simplifiedStransferSystemSpring.dtos;
+package com.simplifiedTransferSystemSpring.dtos;
 
 import java.math.BigDecimal;
 
-import com.simplifiedStransferSystemSpring.domain.user.UserType;
+import com.simplifiedTransferSystemSpring.domain.user.UserType;
 
 public record UserDTO(
                 String firstName,

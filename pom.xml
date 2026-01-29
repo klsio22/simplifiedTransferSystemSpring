@@ -8,10 +8,10 @@
 		<version>4.0.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.simplifiedStransferSystemSpring</groupId>
-	<artifactId>simplifiedStransferSystemSpring</artifactId>
+	<groupId>com.simplifiedTransferSystemSpring</groupId>
+	<artifactId>simplifiedTransferSystemSpring</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>simplifiedStransferSystemSpring</name>
+	<name>simplifiedTransferSystemSpring</name>
 	<description>Simplified Transfer System with Java Spring</description>
 	<url/>
 	<licenses>

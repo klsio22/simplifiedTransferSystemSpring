@@ -1,4 +1,4 @@
-package com.simplifiedStransferSystemSpring.domain.user;
+package com.simplifiedTransferSystemSpring.domain.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,7 +16,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 
-import com.simplifiedStransferSystemSpring.dtos.UserDTO;
+import com.simplifiedTransferSystemSpring.dtos.UserDTO;
 
 @Entity(name = "users")
 @Table(name = "users")

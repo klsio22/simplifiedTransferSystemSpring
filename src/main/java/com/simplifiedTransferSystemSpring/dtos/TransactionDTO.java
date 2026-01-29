@@ -1,4 +1,4 @@
-package com.simplifiedStransferSystemSpring.dtos;
+package com.simplifiedTransferSystemSpring.dtos;
 
 import java.math.BigDecimal;
 

@@ -1,8 +1,8 @@
-package com.simplifiedStransferSystemSpring.repositories;
+package com.simplifiedTransferSystemSpring.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.simplifiedStransferSystemSpring.domain.transaction.Transaction;
+import com.simplifiedTransferSystemSpring.domain.transaction.Transaction;
 
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
 

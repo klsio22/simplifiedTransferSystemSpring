@@ -1,13 +1,13 @@
-package com.simplifiedStransferSystemSpring;
+package com.simplifiedTransferSystemSpring;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class SimplifiedStransferSystemSpringApplication {
+public class SimplifiedTransferSystemSpringApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(SimplifiedStransferSystemSpringApplication.class, args);
+		SpringApplication.run(SimplifiedTransferSystemSpringApplication.class, args);
 	}
 
 }

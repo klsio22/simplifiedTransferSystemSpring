@@ -1,12 +1,11 @@
-package com.simplifiedStransferSystemSpring.infra;
+package com.simplifiedTransferSystemSpring.infra;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.simplifiedStransferSystemSpring.dtos.ExceptionDTO;
+import com.simplifiedTransferSystemSpring.dtos.ExceptionDTO;
 
 import jakarta.persistence.EntityNotFoundException;
 
