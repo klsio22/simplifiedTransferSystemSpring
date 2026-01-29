@@ -69,41 +69,60 @@ public class TransactionService {
 
         validateTransaction(payer, transaction.value());
 
+        validateAuthorization();
+
+        Transaction newTransaction = executeTransaction(transaction, payer, payee);
+
+        scheduleNotifications(newTransaction, payer, payee);
+
+        return newTransaction;
+    }
+
+    private void validateAuthorization() throws RuntimeException {
         boolean isAuthorized = authorizeTransaction();
-        if (!isAuthorized)
+        if (!isAuthorized) {
             throw new RuntimeException("Transaction not authorized");
+        }
+    }
 
-        Transaction newTransaction = buildTransaction(transaction, payer, payee);
-        
-        updateBalancesAndSave(payer, payee, transaction.value());
+    private Transaction executeTransaction(TransactionDTO dto, User payer, User payee) {
+        Transaction newTransaction = buildTransaction(dto, payer, payee);
+        updateBalancesAndSave(payer, payee, dto.value());
+        return repository.save(newTransaction);
+    }
 
-        newTransaction = repository.save(newTransaction);
-
-        final Transaction savedTransaction = newTransaction;
-
+    private void scheduleNotifications(Transaction transaction, User payer, User payee) {
         TransactionSynchronizationManager.registerSynchronization(
                 new org.springframework.transaction.support.TransactionSynchronization() {
                     @Override
                     public void afterCommit() {
-                        boolean payerNotified = notificationService.sendNotification(payer,
-                                "Transaction sent successfully.");
-                        boolean payeeNotified = notificationService.sendNotification(payee,
-                                "Transaction received successfully.");
-                        if (!payerNotified || !payeeNotified) {
-                            logger.warn("One or more notification deliveries failed.");
-                        }
-                        savedTransaction.setPayerNotified(payerNotified);
-                        savedTransaction.setPayeeNotified(payeeNotified);
-                        try {
-                            repository.save(savedTransaction);
-                        } catch (Exception e) {
-                            logger.warn("Failed to persist notification flags for transaction {}: {}",
-                                    savedTransaction.getId(), e.getMessage());
-                        }
+                        sendNotificationsAndUpdateFlags(transaction, payer, payee);
                     }
                 });
+    }
 
-        return savedTransaction;
+    private void sendNotificationsAndUpdateFlags(Transaction transaction, User payer, User payee) {
+        boolean payerNotified = notificationService.sendNotification(payer,
+                "Transaction sent successfully.");
+        boolean payeeNotified = notificationService.sendNotification(payee,
+                "Transaction received successfully.");
+
+        if (!payerNotified || !payeeNotified) {
+            logger.warn("One or more notification deliveries failed.");
+        }
+
+        updateNotificationFlags(transaction, payerNotified, payeeNotified);
+    }
+
+    private void updateNotificationFlags(Transaction transaction, boolean payerNotified, boolean payeeNotified) {
+        transaction.setPayerNotified(payerNotified);
+        transaction.setPayeeNotified(payeeNotified);
+        try {
+            repository.save(transaction);
+        } catch (Exception e) {
+            logger.warn("Failed to persist notification flags for transaction {}: {}",
+                    transaction.getId(), e.getMessage());
+        }
     }
 
     public boolean authorizeTransaction() {
