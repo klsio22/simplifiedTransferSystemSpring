@@ -9,7 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
@@ -118,9 +120,12 @@ public class TransactionService {
             attempts++;
             try {
                 logger.debug("Authorization attempt {} (no payer/amount passed)", attempts);
-
-                ResponseEntity<Map> authorizationResponse = restTemplate
-                        .getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
+                ResponseEntity<Map<String, Object>> authorizationResponse = restTemplate.exchange(
+                        "https://util.devi.tools/api/v2/authorize",
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<Map<String, Object>>() {
+                        });
 
                 if (authorizationResponse.getStatusCode() == HttpStatus.OK && authorizationResponse.getBody() != null) {
                     Boolean parsed = parseAuthorizationResponse(authorizationResponse.getBody());
@@ -137,8 +142,7 @@ public class TransactionService {
         }
         return false;
     }
-
-    private Boolean parseAuthorizationResponse(Map<?, ?> body) {
+    private Boolean parseAuthorizationResponse(Map<String, Object> body) {
         Object dataObj = body.get("data");
         Object statusObj = body.get("status");
 
