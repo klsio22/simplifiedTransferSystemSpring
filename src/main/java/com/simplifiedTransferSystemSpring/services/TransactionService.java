@@ -57,11 +57,9 @@ public class TransactionService {
         return t;
     }
 
-    private void updateBalancesAndSave(User payer, User payee, BigDecimal amount) {
+    private void updateBalances(User payer, User payee, BigDecimal amount) {
         payer.setBalance(payer.getBalance().subtract(amount));
         payee.setBalance(payee.getBalance().add(amount));
-        userService.saveUser(payer);
-        userService.saveUser(payee);
     }
 
     @Transactional
@@ -70,10 +68,11 @@ public class TransactionService {
         User payee = loadUser(transaction.payeeId());
 
         validateTransaction(payer, transaction.value());
-
         validateAuthorization();
 
         Transaction newTransaction = executeTransaction(transaction, payer, payee);
+
+        sendNotifications(newTransaction, payer, payee);
 
         return newTransaction;
     }
@@ -87,22 +86,26 @@ public class TransactionService {
 
     private Transaction executeTransaction(TransactionDTO dto, User payer, User payee) {
         Transaction newTransaction = buildTransaction(dto, payer, payee);
-        updateBalancesAndSave(payer, payee, dto.value());
+
+        updateBalances(payer, payee, dto.value());
 
         Transaction saved = repository.save(newTransaction);
 
+        return saved;
+    }
+
+    private void sendNotifications(Transaction transaction, User payer, User payee) {
         boolean payerNotified = notificationService.sendNotification(payer, "Transaction sent successfully.");
         boolean payeeNotified = notificationService.sendNotification(payee, "Transaction received successfully.");
 
         try {
-            saved.setPayerNotified(payerNotified);
-            saved.setPayeeNotified(payeeNotified);
-            repository.saveAndFlush(saved);
+            transaction.setPayerNotified(payerNotified);
+            transaction.setPayeeNotified(payeeNotified);
+            repository.saveAndFlush(transaction);
         } catch (Exception e) {
-            logger.warn("Failed to persist notification flags for transaction {}: {}", saved.getId(), e.getMessage());
+            logger.warn("Failed to persist notification flags for transaction {}: {}",
+                    transaction.getId(), e.getMessage());
         }
-
-        return saved;
     }
 
     public boolean authorizeTransaction() {
@@ -159,5 +162,4 @@ public class TransactionService {
     public List<Transaction> getAllTransactions() {
         return this.repository.findAll();
     }
-
 }
