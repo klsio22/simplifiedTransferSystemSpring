@@ -139,24 +139,15 @@ Classes abertas para extensão, fechadas para modificação:
 
 ### 3. **Liskov Substitution Principle (LSP)**
 Implementações concretas podem substituir interfaces sem quebrar comportamento:
- - `AuthorizationService` (where present) provides an abstraction for external authorization calls
+- `AuthorizationService` provides an abstraction for external authorization calls.
+- Serviços e repositórios seguem contratos bem definidos (por exemplo, `TransactionRepository` e `UserRepository`).
+- Novas implementações podem ser introduzidas mantendo a mesma interface pública exposta pelos serviços.
 
 ### 4. **Interface Segregation Principle (ISP)**
 Interfaces específicas e coesas:
-- `AuthorizationService.authorize()`: apenas autorização
- - Validações de transação são executadas por serviços dedicados (ex.: `UserService`)
-
-### 3. **Liskov Substitution Principle (LSP)**
-Implementações concretas podem substituir abstrações sem quebrar comportamento:
-- Serviços e repositórios seguem contratos bem definidos (por exemplo, `TransactionRepository` e `UserRepository`)
-- Novas implementações podem ser introduzidas mantendo a mesma interface pública exposta pelos serviços
-
-### 4. **Interface Segregation Principle (ISP)**
-Responsabilidades são divididas em componentes específicos e coesos:
-- Serviços focados em uma responsabilidade principal (`TransactionService` para transações, `UserService` para usuários, `NotificationsService` para notificações)
-- Repositórios dedicados apenas ao acesso a dados (`TransactionRepository`, `UserRepository`)
-- A lógica de negócio é concentrada em serviços; novos comportamentos (por exemplo, novas regras de validação ou estratégias de autorização) podem ser adicionados por meio de novos beans ou métodos sem alterar o funcionamento já existente
-
+- `AuthorizationService.authorize()`: responsabilidade única de autorização.
+- Validações de transação são executadas por serviços dedicados (ex.: `UserService`).
+- Responsabilidades são divididas em componentes específicos e coesos (serviços, repositórios, assemblers), facilitando a evolução sem inflar interfaces.
 ### 5. **Dependency Inversion Principle (DIP)**
 Dependências de abstrações, não de implementações concretas:
 - `TransactionService` depende de `AuthorizationService` (interface), não da implementação REST
@@ -200,7 +191,7 @@ Foram criadas novas abstrações:
 3. **Autorização Externa**: integração com `https://util.devi.tools/api/v2/authorize`
    - Retry automático (até 3 tentativas)
    - Backoff exponencial entre tentativas
-4. **Notificações**: envio via `NotificationsService`
+4. **Notificações**: envio via `NotificationsService` com retry e backoff linear entre tentativas (`100ms * tentativa`)
 5. **Auditoria**: flags `payerNotified` e `payeeNotified` persistidos
 
 ---
