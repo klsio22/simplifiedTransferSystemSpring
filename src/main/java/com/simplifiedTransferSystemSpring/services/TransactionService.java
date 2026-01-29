@@ -62,6 +62,7 @@ public class TransactionService {
         payee.setBalance(payee.getBalance().add(amount));
     }
 
+    @Transactional
     public Transaction createTransaction(TransactionDTO transaction) {
         User payer = loadUser(transaction.payerId());
         User payee = loadUser(transaction.payeeId());
@@ -82,7 +83,6 @@ public class TransactionService {
         }
     }
 
-    @Transactional
     private Transaction executeTransaction(TransactionDTO dto, User payer, User payee) {
         updateBalances(payer, payee, dto.value());
 
