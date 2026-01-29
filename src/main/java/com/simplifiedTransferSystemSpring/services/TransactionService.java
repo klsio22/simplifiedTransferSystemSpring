@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,6 +19,7 @@ import com.simplifiedTransferSystemSpring.domain.transaction.Transaction;
 import com.simplifiedTransferSystemSpring.domain.user.User;
 import com.simplifiedTransferSystemSpring.dtos.TransactionDTO;
 import com.simplifiedTransferSystemSpring.repositories.TransactionRepository;
+
 
 @Service
 public class TransactionService {
@@ -60,6 +62,7 @@ public class TransactionService {
         userService.saveUser(payee);
     }
 
+    @Transactional
     public Transaction createTransaction(TransactionDTO transaction) throws Exception {
         User payer = loadUser(transaction.payerId());
         User payee = loadUser(transaction.payeeId());
@@ -72,19 +75,37 @@ public class TransactionService {
 
         Transaction newTransaction = buildTransaction(transaction, payer, payee);
 
-        repository.save(newTransaction);
-
         updateBalancesAndSave(payer, payee, transaction.value());
 
-        boolean payerNotified = notificationService.sendNotification(payer, "Transaction sent successfully.");
-        boolean payeeNotified = notificationService.sendNotification(payee, "Transaction received successfully.");
-        if (!payerNotified || !payeeNotified) {
-            logger.warn("One or more notification deliveries failed.");
-        }
-
-        newTransaction.setPayerNotified(payerNotified);
-        newTransaction.setPayeeNotified(payeeNotified);
         repository.save(newTransaction);
+
+        org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+            new org.springframework.transaction.support.TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    boolean payerNotified = notificationService.sendNotification(payer, "Transaction sent successfully.");
+                    boolean payeeNotified = notificationService.sendNotification(payee, "Transaction received successfully.");
+                    if (!payerNotified || !payeeNotified) {
+                        logger.warn("One or more notification deliveries failed.");
+                    }
+                    newTransaction.setPayerNotified(payerNotified);
+                    newTransaction.setPayeeNotified(payeeNotified);
+                    try {
+                        repository.save(newTransaction);
+                    } catch (Exception e) {
+                        logger.warn("Failed to persist notification flags for transaction {}: {}", newTransaction.getId(), e.getMessage());
+                    }
+                }
+
+                // no-op implementations for other lifecycle methods
+                @Override public void beforeCommit(boolean readOnly) {}
+                @Override public void beforeCompletion() {}
+                @Override public void afterCompletion(int status) {}
+                @Override public void flush() {}
+                @Override public void suspend() {}
+                @Override public void resume() {}
+            }
+        );
 
         return newTransaction;
     }
@@ -95,8 +116,9 @@ public class TransactionService {
         while (attempts < maxAttempts) {
             attempts++;
             try {
-                ResponseEntity<Map> authorizationResponse = restTemplate
-                        .getForEntity("https://util.devi.tools/api/v2/authorize", Map.class);
+                ResponseEntity<Map> authorizationResponse = restTemplate.getForEntity(
+                        "https://util.devi.tools/api/v2/authorize?payerId={payerId}&amount={amount}",
+                        Map.class, payer.getId(), value.toPlainString());
 
                 if (authorizationResponse.getStatusCode() == HttpStatus.OK && authorizationResponse.getBody() != null) {
                     Boolean parsed = parseAuthorizationResponse(authorizationResponse.getBody());
@@ -104,8 +126,9 @@ public class TransactionService {
                         return parsed;
                     return false;
                 } else {
-                    throw new RuntimeException(
-                            "Authorization endpoint returned non-OK: " + authorizationResponse.getStatusCode());
+                    logger.warn("Authorization endpoint returned non-OK (attempt {}): {}", attempts, authorizationResponse.getStatusCode());
+                    // allow retry on non-2xx responses
+                    continue;
                 }
             } catch (RestClientException e) {
                 logger.warn("Authorization request failed (attempt {}): {}", attempts, e.getMessage());

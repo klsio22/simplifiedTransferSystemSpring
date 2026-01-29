@@ -1,5 +1,7 @@
 package com.simplifiedTransferSystemSpring.services;
 
+import java.util.concurrent.TimeUnit;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +49,14 @@ public class NotificationsService {
             } catch (RestClientException exception) {
                 logger.warn("Failed to send notification to {} (attempt {}): {}", email, attempts,
                         exception.getMessage());
+            }
+
+            try {
+                TimeUnit.MILLISECONDS.sleep(100L * attempts);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                logger.warn("Notification retry interrupted for {}: {}", email, ie.getMessage());
+                break;
             }
         }
 
