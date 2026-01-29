@@ -74,8 +74,12 @@ public class TransactionService {
             throw new RuntimeException("Transaction not authorized");
 
         Transaction newTransaction = buildTransaction(transaction, payer, payee);
+        
         updateBalancesAndSave(payer, payee, transaction.value());
-        repository.save(newTransaction);
+
+        newTransaction = repository.save(newTransaction);
+
+        final Transaction savedTransaction = newTransaction;
 
         TransactionSynchronizationManager.registerSynchronization(
                 new org.springframework.transaction.support.TransactionSynchronization() {
@@ -88,18 +92,18 @@ public class TransactionService {
                         if (!payerNotified || !payeeNotified) {
                             logger.warn("One or more notification deliveries failed.");
                         }
-                        newTransaction.setPayerNotified(payerNotified);
-                        newTransaction.setPayeeNotified(payeeNotified);
+                        savedTransaction.setPayerNotified(payerNotified);
+                        savedTransaction.setPayeeNotified(payeeNotified);
                         try {
-                            repository.save(newTransaction);
+                            repository.save(savedTransaction);
                         } catch (Exception e) {
                             logger.warn("Failed to persist notification flags for transaction {}: {}",
-                                    newTransaction.getId(), e.getMessage());
+                                    savedTransaction.getId(), e.getMessage());
                         }
                     }
                 });
 
-        return newTransaction;
+        return savedTransaction;
     }
 
     public boolean authorizeTransaction() {
