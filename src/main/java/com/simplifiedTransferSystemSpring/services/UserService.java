@@ -13,7 +13,6 @@ import com.simplifiedTransferSystemSpring.domain.user.UserType;
 import com.simplifiedTransferSystemSpring.dtos.UserDTO;
 import com.simplifiedTransferSystemSpring.repositories.UserRepository;
 
-import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class UserService {
@@ -33,7 +32,7 @@ public class UserService {
 
     public User findUserById(Long id) {
         return this.repository.findUserById(id)
-                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
+               .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found with id: " + id));
     }
 
     public User createUser(UserDTO data) {
