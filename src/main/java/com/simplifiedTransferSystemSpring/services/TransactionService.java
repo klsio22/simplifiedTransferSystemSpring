@@ -85,11 +85,12 @@ public class TransactionService {
     }
 
     private Transaction executeTransaction(TransactionDTO dto, User payer, User payee) {
-        Transaction newTransaction = buildTransaction(dto, payer, payee);
-
         updateBalances(payer, payee, dto.value());
 
+        Transaction newTransaction = buildTransaction(dto, payer, payee);
         Transaction saved = repository.save(newTransaction);
+
+        repository.flush();
 
         return saved;
     }
