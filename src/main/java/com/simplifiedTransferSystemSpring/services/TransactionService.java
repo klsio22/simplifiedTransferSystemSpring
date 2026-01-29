@@ -13,6 +13,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -63,6 +64,7 @@ public class TransactionService {
         userService.saveUser(payee);
     }
 
+    @Transactional
     public Transaction createTransaction(TransactionDTO transaction) {
         User payer = loadUser(transaction.payerId());
         User payee = loadUser(transaction.payeeId());
