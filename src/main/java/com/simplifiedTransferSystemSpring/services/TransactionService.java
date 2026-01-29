@@ -20,7 +20,6 @@ import com.simplifiedTransferSystemSpring.domain.user.User;
 import com.simplifiedTransferSystemSpring.dtos.TransactionDTO;
 import com.simplifiedTransferSystemSpring.repositories.TransactionRepository;
 
-
 @Service
 public class TransactionService {
 
@@ -80,32 +79,51 @@ public class TransactionService {
         repository.save(newTransaction);
 
         org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
-            new org.springframework.transaction.support.TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    boolean payerNotified = notificationService.sendNotification(payer, "Transaction sent successfully.");
-                    boolean payeeNotified = notificationService.sendNotification(payee, "Transaction received successfully.");
-                    if (!payerNotified || !payeeNotified) {
-                        logger.warn("One or more notification deliveries failed.");
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        boolean payerNotified = notificationService.sendNotification(payer,
+                                "Transaction sent successfully.");
+                        boolean payeeNotified = notificationService.sendNotification(payee,
+                                "Transaction received successfully.");
+                        if (!payerNotified || !payeeNotified) {
+                            logger.warn("One or more notification deliveries failed.");
+                        }
+                        newTransaction.setPayerNotified(payerNotified);
+                        newTransaction.setPayeeNotified(payeeNotified);
+                        try {
+                            repository.save(newTransaction);
+                        } catch (Exception e) {
+                            logger.warn("Failed to persist notification flags for transaction {}: {}",
+                                    newTransaction.getId(), e.getMessage());
+                        }
                     }
-                    newTransaction.setPayerNotified(payerNotified);
-                    newTransaction.setPayeeNotified(payeeNotified);
-                    try {
-                        repository.save(newTransaction);
-                    } catch (Exception e) {
-                        logger.warn("Failed to persist notification flags for transaction {}: {}", newTransaction.getId(), e.getMessage());
-                    }
-                }
 
-                // no-op implementations for other lifecycle methods
-                @Override public void beforeCommit(boolean readOnly) {}
-                @Override public void beforeCompletion() {}
-                @Override public void afterCompletion(int status) {}
-                @Override public void flush() {}
-                @Override public void suspend() {}
-                @Override public void resume() {}
-            }
-        );
+                    // no-op implementations for other lifecycle methods
+                    @Override
+                    public void beforeCommit(boolean readOnly) {
+                    }
+
+                    @Override
+                    public void beforeCompletion() {
+                    }
+
+                    @Override
+                    public void afterCompletion(int status) {
+                    }
+
+                    @Override
+                    public void flush() {
+                    }
+
+                    @Override
+                    public void suspend() {
+                    }
+
+                    @Override
+                    public void resume() {
+                    }
+                });
 
         return newTransaction;
     }
@@ -126,9 +144,8 @@ public class TransactionService {
                         return parsed;
                     return false;
                 } else {
-                    logger.warn("Authorization endpoint returned non-OK (attempt {}): {}", attempts, authorizationResponse.getStatusCode());
-                    // allow retry on non-2xx responses
-                    continue;
+                    logger.warn("Authorization endpoint returned non-OK (attempt {}): {}", attempts,
+                            authorizationResponse.getStatusCode());
                 }
             } catch (RestClientException e) {
                 logger.warn("Authorization request failed (attempt {}): {}", attempts, e.getMessage());
